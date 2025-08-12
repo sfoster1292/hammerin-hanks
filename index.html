@@ -55,20 +55,13 @@
 
   <script>
     // ======== CONFIG ========
-    // Supabase: fill these in before deploying
-    const SUPABASE_URL = "https://znlzjtmwmouiahfovtdr.supabase.co"; // <- replace
-    const SUPABASE_KEY = "YOUR-ANON-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpubHpqdG13bW91aWFoZm92dGRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjg1NzAsImV4cCI6MjA3MDYwNDU3MH0.5PRe3Z4CzYjCoXNgFu2FiNPF0ufRhLHRSToBaJ6oeTg";                     // <- replace (anon key)
+    const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"; // replace with your project URL
+    const SUPABASE_KEY = "YOUR-ANON-KEY";                     // replace with your anon key
     const AVAIL_TABLE  = "availability";
 
-    // Optional shared league code to keep randoms from writing.
-    const LEAGUE_CODE_STORAGE_KEY = 'hh_league_code';
+    // Hardcoded league code
     function getLeagueCode() {
-      let code = localStorage.getItem(LEAGUE_CODE_STORAGE_KEY);
-      if (!code) {
-        code = prompt('Enter league code (ask your captain)') || '';
-        localStorage.setItem(LEAGUE_CODE_STORAGE_KEY, code);
-      }
-      return code;
+      return 'hanks-2025-8QwZ'; // <-- replace with your actual league code
     }
 
     // ======== DATA LOADING (JSON) ========
@@ -112,13 +105,7 @@
 
     async function loadAvailability(gameId) {
       const code = getLeagueCode();
-      const query = new URLSearchParams({
-        select: '*',
-        game_id: `eq.${gameId}`,
-        league_code: code ? `eq.${code}` : undefined
-      });
-      // Remove undefined params
-      for (const [k,v] of [...query.entries()]) { if (v === 'undefined') query.delete(k); }
+      const query = new URLSearchParams({ select: '*', game_id: `eq.${gameId}`, league_code: `eq.${code}` });
       return sbFetch(`/rest/v1/${AVAIL_TABLE}?${query.toString()}`, { headers: sbHeaders() })
         .then(rows => {
           const map = {}; rows.forEach(r => map[r.player_id] = r.status); return map;
@@ -127,7 +114,7 @@
 
     async function saveAvailability(gameId, playerId, status) {
       const code = getLeagueCode();
-      const body = [{ game_id: gameId, player_id: playerId, status: status ?? null, league_code: code || null }];
+      const body = [{ game_id: gameId, player_id: playerId, status: status ?? null, league_code: code }];
       return sbFetch(`/rest/v1/${AVAIL_TABLE}`, {
         method: 'POST',
         headers: sbHeaders(),
@@ -146,7 +133,6 @@
     async function renderSchedule() {
       const app = document.getElementById('app');
       app.innerHTML = '';
-      // fetch all counts in parallel for speed
       const countsList = await Promise.all(SCHEDULE.map(g => tallyServer(g.id)));
       SCHEDULE.forEach((game, idx) => {
         const counts = countsList[idx];
@@ -189,7 +175,6 @@
 
     async function setStatus(gameId, playerId, status) {
       try {
-        // clicking the same status again clears it
         const current = await loadAvailability(gameId);
         const next = current[playerId] === status ? null : status;
         await saveAvailability(gameId, playerId, next);
@@ -201,7 +186,6 @@
       }
     }
 
-    // kick things off
     loadData();
   </script>
 </body>
