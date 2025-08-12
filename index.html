@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Hammerin' Hanks</title>
+  <style>
+    :root {
+      --bg: #050509;
+      --card: #1e1f23;
+      --muted: #a1a1a1;
+      --text: #ececec;
+      --accent: #10a37f;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #38bdf8;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    a { color: inherit; text-decoration: none; }
+    header {
+      background: #101114; padding: 12px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .header-logo { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; }
+    .title { font-size: 18px; font-weight: bold; }
+    .container { padding: 16px; }
+    .game-button {
+      background: var(--card); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; cursor: pointer;
+    }
+    .game-button:hover { outline: 2px solid rgba(16,163,127,0.35); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; }
+    .badge.home { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge.away { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .roster-card {
+      background: var(--card); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .btn { border: none; border-radius: 8px; padding: 8px 12px; font-weight: bold; cursor: pointer; font-size: 14px; background: rgba(255,255,255,0.1); color: var(--text); }
+    .btn.active.in { background: var(--green); color: black; }
+    .btn.active.out { background: var(--red); color: black; }
+    .btn.active.if { background: var(--blue); color: black; }
+    @media (max-width: 600px) {
+      .title { font-size: 16px; }
+      .game-button { font-size: 14px; }
+      .btn { padding: 6px 8px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img id="teamLogo" src="" alt="Team Logo" class="header-logo" />
+    <div class="title" id="teamName">Hammerin' Hanks</div>
+  </header>
+
+  <main class="container" id="app"></main>
+
+  <script>
+    let SCHEDULE = [];
+    let ROSTER = [];
+
+    const storeKey = 'hh_availability';
+    const loadStore = () => JSON.parse(localStorage.getItem(storeKey) || '{}');
+    const saveStore = (data) => localStorage.setItem(storeKey, JSON.stringify(data));
+
+    async function loadData() {
+      try {
+        const [teamRes, scheduleRes, rosterRes] = await Promise.all([
+          fetch('./data/team.json'),
+          fetch('./data/schedule.json'),
+          fetch('./data/roster.json')
+        ]);
+
+        const team = await teamRes.json();
+        SCHEDULE = await scheduleRes.json();
+        ROSTER = await rosterRes.json();
+
+        document.getElementById('teamLogo').src = team.logoUrl;
+        document.getElementById('teamName').textContent = team.teamName;
+
+        renderSchedule();
+      } catch (err) {
+        console.error('Error loading data:', err);
+      }
+    }
+
+    function tally(gameId) {
+      const store = loadStore()[gameId] || {};
+      let ins = 0, outs = 0, iff = 0;
+      for (const pid in store) {
+        if (store[pid] === 'in') ins++;
+        else if (store[pid] === 'out') outs++;
+        else if (store[pid] === 'if') iff++;
+      }
+      return { ins, outs, iff };
+    }
+
+    function renderSchedule() {
+      const app = document.getElementById('app');
+      app.innerHTML = '';
+      SCHEDULE.forEach(game => {
+        const counts = tally(game.id);
+        const div = document.createElement('div');
+        div.className = 'game-button';
+        div.innerHTML = `<div><strong>${game.date}</strong> • ${game.time}</div>
+                         <div>${game.field} | Opponent: ${game.opponent} <span class="badge ${game.homeAway.toLowerCase()}">${game.homeAway}</span></div>
+                         <div style="color: var(--muted); font-size: 13px;">In: ${counts.ins} • Out: ${counts.outs} • If Needed: ${counts.iff}</div>`;
+        div.onclick = () => renderRoster(game);
+        app.appendChild(div);
+      });
+    }
+
+    function renderRoster(game) {
+      const app = document.getElementById('app');
+      app.innerHTML = `<div style='margin-bottom:12px;'><button onclick='renderSchedule()'>← Back</button></div>
+      <div class="roster-card" style="margin-bottom:12px;">
+        <div>
+          <div><strong>Opponent: ${game.opponent}</strong></div>
+          <div style="color:var(--muted); font-size:13px;">${game.date} • ${game.time} • ${game.field} • <span class="badge ${game.homeAway.toLowerCase()}">${game.homeAway}</span></div>
+        </div>
+      </div>`;
+      ROSTER.forEach(player => {
+        const status = loadStore()[game.id]?.[player.id] || '';
+        const row = document.createElement('div');
+        row.className = 'roster-card';
+        row.innerHTML = `<div>${player.name}</div>
+                         <div>
+                           <button class='btn in ${status==='in'?'active in':''}' onclick='setStatus("${game.id}","${player.id}","in")'>In</button>
+                           <button class='btn out ${status==='out'?'active out':''}' onclick='setStatus("${game.id}","${player.id}","out")'>Out</button>
+                           <button class='btn if ${status==='if'?'active if':''}' onclick='setStatus("${game.id}","${player.id}","if")'>If Needed</button>
+                         </div>`;
+        app.appendChild(row);
+      });
+    }
+
+    function setStatus(gameId, playerId, status) {
+      const store = loadStore();
+      store[gameId] = store[gameId] || {};
+      store[gameId][playerId] = store[gameId][playerId] === status ? '' : status;
+      saveStore(store);
+      const game = SCHEDULE.find(g => g.id === gameId);
+      renderRoster(game);
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

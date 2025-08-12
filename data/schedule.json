@@ -1,0 +1,5 @@
+[
+  { "id": "2025-08-15-7pm-f3", "date": "Aug 15, 2025", "time": "7:00 PM", "field": "Field 3", "opponent": "Thunder Bats", "homeAway": "Home" },
+  { "id": "2025-08-22-8pm-f1", "date": "Aug 22, 2025", "time": "8:00 PM", "field": "Field 1", "opponent": "Diamond Dogs", "homeAway": "Away" },
+  { "id": "2025-08-29-6pm-f2", "date": "Aug 29, 2025", "time": "6:00 PM", "field": "Field 2", "opponent": "River Rats", "homeAway": "Home" }
+]
