@@ -6,6 +6,7 @@
   <title>Hammerin' Hanks</title>
   <style>
     :root {
+      /* ChatGPT-like dark theme */
       --bg: #050509;
       --card: #1e1f23;
       --muted: #a1a1a1;
@@ -16,33 +17,52 @@
       --blue: #38bdf8;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", sans-serif; background: var(--bg); color: var(--text); }
     a { color: inherit; text-decoration: none; }
+
+    /* Header */
     header {
       background: #101114; padding: 12px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10;
       border-bottom: 1px solid rgba(255,255,255,0.08);
     }
     .header-logo { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; }
-    .title { font-size: 18px; font-weight: bold; }
-    .container { padding: 16px; }
+    .title { font-size: 18px; font-weight: 800; }
+
+    /* Layout */
+    .container { padding: 16px; max-width: 920px; margin: 0 auto; }
+    .note { color: var(--muted); font-size: 12px; margin-top: 8px; }
+
+    /* Schedule cards */
     .game-button {
-      background: var(--card); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; cursor: pointer;
+      background: var(--card); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; transition: box-shadow .2s ease, transform .02s ease;
     }
     .game-button:hover { outline: 2px solid rgba(16,163,127,0.35); }
+    .game-button:active { transform: translateY(1px); }
+
     .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; }
     .badge.home { background: rgba(34,197,94,0.15); color: var(--green); }
     .badge.away { background: rgba(59,130,246,0.15); color: var(--blue); }
-    .roster-card { background: var(--card); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .btn { border: none; border-radius: 8px; padding: 8px 12px; font-weight: bold; cursor: pointer; font-size: 14px; background: rgba(255,255,255,0.1); color: var(--text); }
-    .btn.active.in { background: var(--green); color: black; }
-    .btn.active.out { background: var(--red); color: black; }
-    .btn.active.if { background: var(--blue); color: black; }
+
+    /* Roster rows */
+    .roster-card { background: var(--card); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .who { font-weight: 600; }
+
+    /* Buttons */
+    .btn { border: none; border-radius: 8px; padding: 8px 12px; font-weight: 700; cursor: pointer; font-size: 14px; background: rgba(255,255,255,0.08); color: var(--text); transition: background .2s ease; }
+    .btn:hover { background: rgba(255,255,255,0.14); }
+    .btn.active.in { background: var(--green); color: #0b0b0f; }
+    .btn.active.out { background: var(--red); color: #0b0b0f; }
+    .btn.active.if { background: var(--blue); color: #0b0b0f; }
+
+    .btns { display: grid; grid-auto-flow: column; gap: 8px; }
+
+    /* Mobile tweaks */
     @media (max-width: 600px) {
       .title { font-size: 16px; }
       .game-button { font-size: 14px; }
-      .btn { padding: 6px 8px; font-size: 13px; }
+      .btn { padding: 10px 12px; font-size: 14px; }
+      .btns { grid-auto-flow: row; }
     }
-    .note { color: var(--muted); font-size: 12px; margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -54,40 +74,49 @@
   <main class="container" id="app"></main>
 
   <script>
-    // ======== CONFIG ========
-    const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"; // replace with your project URL
-    const SUPABASE_KEY = "YOUR-ANON-KEY";                     // replace with your anon key
+    // =============================
+    // CONFIG — fill these in
+    // =============================
+    const SUPABASE_URL = "https://znlzjtmwmouiahfovtdr.supabase.co"; // replace with your project URL
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpubHpqdG13bW91aWFoZm92dGRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjg1NzAsImV4cCI6MjA3MDYwNDU3MH0.5PRe3Z4CzYjCoXNgFu2FiNPF0ufRhLHRSToBaJ6oeTg";                     // replace with your anon key
     const AVAIL_TABLE  = "availability";
 
-    // Hardcoded league code
-    function getLeagueCode() {
-      return 'hanks-2025-8QwZ'; // <-- replace with your actual league code
-    }
+    // Hardcoded league code (simplest for small groups)
+    function getLeagueCode() { return 'hanks-2025-8QwZ'; } // <-- replace with your code
 
-    // ======== DATA LOADING (JSON) ========
+    // =============================
+    // DATA (fetched from /data/*.json)
+    // =============================
     let SCHEDULE = [];
     let ROSTER = [];
 
+    async function fetchOrThrow(path) {
+      const res = await fetch(path, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`${path} -> ${res.status} ${res.statusText}`);
+      return res.json();
+    }
+
     async function loadData() {
       try {
-        const [teamRes, scheduleRes, rosterRes] = await Promise.all([
-          fetch('./data/team.json'),
-          fetch('./data/schedule.json'),
-          fetch('./data/roster.json')
+        const [team, schedule, roster] = await Promise.all([
+          fetchOrThrow('./data/team.json'),
+          fetchOrThrow('./data/schedule.json'),
+          fetchOrThrow('./data/roster.json')
         ]);
-        const team = await teamRes.json();
-        SCHEDULE = await scheduleRes.json();
-        ROSTER = await rosterRes.json();
-        document.getElementById('teamLogo').src = team.logoUrl;
-        document.getElementById('teamName').textContent = team.teamName;
+        SCHEDULE = schedule;
+        ROSTER = roster;
+        document.getElementById('teamLogo').src = team.logoUrl || '';
+        document.getElementById('teamName').textContent = team.teamName || "Hammerin' Hanks";
         await renderSchedule();
       } catch (err) {
-        console.error('Error loading data:', err);
-        document.getElementById('app').innerHTML = '<div class="note">Failed to load data. Check your /data JSON files.</div>';
+        console.error('Failed to load JSON:', err);
+        document.getElementById('app').innerHTML = `<div class="note">Failed to load data. Check that <code>/data/team.json</code>, <code>/data/schedule.json</code>, and <code>/data/roster.json</code> exist. Details: ${String(err).replace(/[<>]/g,'')}</div>`;
       }
     }
 
-    // ======== SUPABASE HELPERS ========
+    // =============================
+    // SUPABASE HELPERS
+    // =============================
     function sbHeaders(extra={}) {
       return Object.assign({
         apikey: SUPABASE_KEY,
@@ -105,21 +134,17 @@
 
     async function loadAvailability(gameId) {
       const code = getLeagueCode();
-      const query = new URLSearchParams({ select: '*', game_id: `eq.${gameId}`, league_code: `eq.${code}` });
-      return sbFetch(`/rest/v1/${AVAIL_TABLE}?${query.toString()}`, { headers: sbHeaders() })
-        .then(rows => {
-          const map = {}; rows.forEach(r => map[r.player_id] = r.status); return map;
-        });
+      const params = new URLSearchParams({ select: '*', game_id: `eq.${gameId}`, league_code: `eq.${code}` });
+      const rows = await sbFetch(`/rest/v1/${AVAIL_TABLE}?${params.toString()}`, { headers: sbHeaders() });
+      const map = {};
+      for (const r of rows) map[r.player_id] = r.status; // 'in' | 'out' | 'if' | null
+      return map;
     }
 
     async function saveAvailability(gameId, playerId, status) {
       const code = getLeagueCode();
       const body = [{ game_id: gameId, player_id: playerId, status: status ?? null, league_code: code }];
-      return sbFetch(`/rest/v1/${AVAIL_TABLE}`, {
-        method: 'POST',
-        headers: sbHeaders(),
-        body: JSON.stringify(body)
-      });
+      return sbFetch(`/rest/v1/${AVAIL_TABLE}`, { method: 'POST', headers: sbHeaders(), body: JSON.stringify(body) });
     }
 
     async function tallyServer(gameId) {
@@ -129,18 +154,25 @@
       return { ins, outs, iff };
     }
 
-    // ======== UI RENDERING ========
+    // =============================
+    // UI RENDERING
+    // =============================
     async function renderSchedule() {
       const app = document.getElementById('app');
       app.innerHTML = '';
+
+      // Get counts in parallel for speed
       const countsList = await Promise.all(SCHEDULE.map(g => tallyServer(g.id)));
+
       SCHEDULE.forEach((game, idx) => {
         const counts = countsList[idx];
         const div = document.createElement('div');
         div.className = 'game-button';
-        div.innerHTML = `<div><strong>${game.date}</strong> • ${game.time}</div>
-                         <div>${game.field} | Opponent: ${game.opponent} <span class="badge ${game.homeAway.toLowerCase()}">${game.homeAway}</span></div>
-                         <div style="color: var(--muted); font-size: 13px;">In: ${counts.ins} • Out: ${counts.outs} • If Needed: ${counts.iff}</div>`;
+        div.innerHTML = `
+          <div><strong>${game.date}</strong> • ${game.time}</div>
+          <div>${game.field} | Opponent: ${game.opponent} <span class="badge ${game.homeAway.toLowerCase()}">${game.homeAway}</span></div>
+          <div style="color: var(--muted); font-size: 13px;">In: ${counts.ins} • Out: ${counts.outs} • If Needed: ${counts.iff}</div>
+        `;
         div.onclick = () => renderRoster(game);
         app.appendChild(div);
       });
@@ -148,13 +180,15 @@
 
     async function renderRoster(game) {
       const app = document.getElementById('app');
-      app.innerHTML = `<div style='margin-bottom:12px;'><button onclick='loadData()'>← Back</button></div>
-      <div class="roster-card" style="margin-bottom:12px;">
-        <div>
-          <div><strong>Opponent: ${game.opponent}</strong></div>
-          <div style="color:var(--muted); font-size:13px;">${game.date} • ${game.time} • ${game.field} • <span class="badge ${game.homeAway.toLowerCase()}">${game.homeAway}</span></div>
+      app.innerHTML = `
+        <div style='margin-bottom:12px;'><button class="btn" onclick='loadData()'>← Back</button></div>
+        <div class="roster-card" style="margin-bottom:12px;">
+          <div>
+            <div><strong>Opponent: ${game.opponent}</strong></div>
+            <div style="color:var(--muted); font-size:13px;">${game.date} • ${game.time} • ${game.field} • <span class="badge ${game.homeAway.toLowerCase()}">${game.homeAway}</span></div>
+          </div>
         </div>
-      </div>`;
+      `;
 
       let current = {};
       try { current = await loadAvailability(game.id); } catch (e) { console.error(e); }
@@ -163,12 +197,14 @@
         const status = current[player.id] || '';
         const row = document.createElement('div');
         row.className = 'roster-card';
-        row.innerHTML = `<div>${player.name}</div>
-                         <div>
-                           <button class='btn in ${status==='in'?'active in':''}' onclick='setStatus("${game.id}","${player.id}","in")'>In</button>
-                           <button class='btn out ${status==='out'?'active out':''}' onclick='setStatus("${game.id}","${player.id}","out")'>Out</button>
-                           <button class='btn if ${status==='if'?'active if':''}' onclick='setStatus("${game.id}","${player.id}","if")'>If Needed</button>
-                         </div>`;
+        row.innerHTML = `
+          <div class="who">${player.name}</div>
+          <div class="btns">
+            <button class='btn in ${status==='in'?'active in':''}' onclick='setStatus("${game.id}","${player.id}","in")'>In</button>
+            <button class='btn out ${status==='out'?'active out':''}' onclick='setStatus("${game.id}","${player.id}","out")'>Out</button>
+            <button class='btn if ${status==='if'?'active if':''}' onclick='setStatus("${game.id}","${player.id}","if")'>If Needed</button>
+          </div>
+        `;
         app.appendChild(row);
       });
     }
@@ -176,7 +212,7 @@
     async function setStatus(gameId, playerId, status) {
       try {
         const current = await loadAvailability(gameId);
-        const next = current[playerId] === status ? null : status;
+        const next = current[playerId] === status ? null : status; // clicking same choice clears it
         await saveAvailability(gameId, playerId, next);
         const game = SCHEDULE.find(g => g.id === gameId);
         await renderRoster(game);
@@ -186,6 +222,7 @@
       }
     }
 
+    // Start
     loadData();
   </script>
 </body>
