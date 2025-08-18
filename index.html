@@ -1,173 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Hammerin' Hanks</title>
-  <style>
-    :root {
-      --bg: #050509;
-      --card: #1e1f23;
-      --muted: #a1a1a1;
-      --text: #ececec;
-      --accent: #10a37f;
-      --green: #22c55e;
-      --red: #ef4444;
-      --blue: #38bdf8;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); }
-    a { color: inherit; text-decoration: none; }
-    header { background: #101114; padding: 12px 16px; display: flex; align-items: center; justify-content: center; gap: 12px; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .header-logo { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; }
-    .title { font-size: 18px; font-weight: bold; }
-    .container { padding: 16px; max-width: 920px; margin: 0 auto; }
-    .note { color: var(--muted); font-size: 12px; margin-top: 8px; }
-    .game-button { background: var(--card); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; transition: box-shadow .2s ease, transform .02s ease; }
-    .game-button:hover { outline: 2px solid rgba(16,163,127,0.35); }
-    .game-button:active { transform: translateY(1px); }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; }
-    .badge.home { background: rgba(34,197,94,0.15); color: var(--green); }
-    .badge.away { background: rgba(59,130,246,0.15); color: var(--blue); }
-    .roster-card { background: var(--card); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .who { font-weight: 600; }
-    .btn { border: none; border-radius: 8px; padding: 8px 12px; font-weight: 700; cursor: pointer; font-size: 14px; background: rgba(255,255,255,0.08); color: var(--text); transition: background .2s ease; }
-    .btn:hover { background: rgba(255,255,255,0.14); }
-    .btn.active.in { background: var(--green); color: #0b0b0f; }
-    .btn.active.out { background: var(--red); color: #0b0b0f; }
-    .btn.active.if { background: var(--blue); color: #0b0b0f; }
-    .btns { display: grid; grid-auto-flow: column; gap: 8px; }
-    @media (max-width: 600px) {
-      .title { font-size: 16px; }
-      .game-button { font-size: 14px; }
-      .btn { padding: 10px 12px; font-size: 14px; }
-      .btns { grid-auto-flow: row; }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Hammerin' Hanks</title>
+<style>
+:root {
+  --bg: #050509;
+  --card: #1e1f23;
+  --muted: #a1a1a1;
+  --text: #ececec;
+  --accent: #10a37f;
+  --green: #22c55e;
+  --red: #ef4444;
+  --blue: #38bdf8;
+  --headerH: 72px; /* JS will update actual height */
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+/* Header: grid with centered brand, back button on left */
+header {
+  background: #101114;
+  padding: 8px 16px 10px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* left: back, center: brand, right: spacer */
+  align-items: center;
+  position: sticky; top: 0; z-index: 20;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.brand { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.header-logo { width: 44px; height: 44px; border-radius: 50%; }
+.title { font-size: 18px; font-weight: 800; text-align: center; }
+.header-spacer { justify-self: end; width: 1px; height: 1px; }
+
+.back-btn {
+  justify-self: start;
+  display: inline-flex; align-items: center; gap: 6px;
+  border: none; border-radius: 10px;
+  padding: 8px 12px; font-weight: 700; font-size: 14px;
+  background: rgba(255,255,255,0.08); color: var(--text);
+  cursor: pointer;
+  visibility: hidden; /* hidden on schedule page */
+}
+header.has-back .back-btn { visibility: visible; }
+
+/* Slim sticky opponent toolbar, below header */
+.subheader {
+  position: sticky;
+  top: var(--headerH);
+  z-index: 15;
+  background: var(--bg);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: saturate(120%) blur(6px);
+}
+.subheader-inner {
+  max-width: 920px; margin: 0 auto;
+  padding: 10px 16px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+
+.container { padding: 16px; max-width: 920px; margin: 0 auto; }
+.note { color: var(--muted); font-size: 12px; margin-top: 8px; }
+.game-button { background: var(--card); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; transition: box-shadow .2s ease, transform .02s ease; }
+.game-button:hover { outline: 2px solid rgba(16,163,127,0.35); }
+.game-button:active { transform: translateY(1px); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; }
+.badge.home { background: rgba(34,197,94,0.15); color: var(--green); }
+.badge.away { background: rgba(59,130,246,0.15); color: var(--blue); }
+.roster-card { background: var(--card); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.who { font-weight: 600; }
+.btn { border: none; border-radius: 8px; padding: 8px 12px; font-weight: 700; cursor: pointer; font-size: 14px; background: rgba(255,255,255,0.08); color: var(--text); transition: background .2s ease; }
+.btn:hover { background: rgba(255,255,255,0.14); }
+.btn.active.in { background: var(--green); color: #0b0b0f; }
+.btn.active.out { background: var(--red); color: #0b0b0f; }
+.btn.active.if { background: var(--blue); color: #0b0b0f; }
+.btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+@media (max-width: 600px) {
+  .title { font-size: 16px; }
+  .game-button { font-size: 14px; }
+  .btn { padding: 10px 12px; font-size: 14px; width: 100%; }
+  .btns { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
 </head>
 <body>
-  <header>
+<header id="appHeader">
+  <button class="back-btn" onclick="loadData()">← Back</button>
+  <div class="brand">
     <img id="teamLogo" src="" alt="Team Logo" class="header-logo" />
     <div class="title" id="teamName">Hammerin' Hanks</div>
-  </header>
-  <main class="container" id="app"></main>
-  <script>
-    const SUPABASE_URL = "https://znlzjtmwmouiahfovtdr.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpubHpqdG13bW91aWFoZm92dGRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjg1NzAsImV4cCI6MjA3MDYwNDU3MH0.5PRe3Z4CzYjCoXNgFu2FiNPF0ufRhLHRSToBaJ6oeTg";
-    const AVAIL_TABLE  = "availability";
-    function getLeagueCode() { return 'hanks-2025-8QwZ'; }
+  </div>
+  <div class="header-spacer"></div>
+</header>
+<main class="container" id="app"></main>
+<script>
+const SUPABASE_URL = "https://znlzjtmwmouiahfovtdr.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpubHpqdG13bW91aWFoZm92dGRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjg1NzAsImV4cCI6MjA3MDYwNDU3MH0.5PRe3Z4CzYjCoXNgFu2FiNPF0ufRhLHRSToBaJ6oeTg";
+const AVAIL_TABLE  = "availability";
+function getLeagueCode() { return 'hanks-2025-8QwZ'; }
+let SCHEDULE = [];
+let ROSTER = [];
 
-    let SCHEDULE = [];
-    let ROSTER = [];
-    async function fetchOrThrow(path) {
-      const res = await fetch(path, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`${path} -> ${res.status} ${res.statusText}`);
-      return res.json();
-    }
-    async function loadData() {
-      try {
-        const [team, schedule, roster] = await Promise.all([
-          fetchOrThrow('./data/team.json'),
-          fetchOrThrow('./data/schedule.json'),
-          fetchOrThrow('./data/roster.json')
-        ]);
-        SCHEDULE = schedule;
-        ROSTER = roster;
-        document.getElementById('teamLogo').src = team.logoUrl || '';
-        document.getElementById('teamName').textContent = team.teamName || "Hammerin' Hanks";
-        await renderSchedule();
-      } catch (err) {
-        console.error('Failed to load JSON:', err);
-        document.getElementById('app').innerHTML = `<div class="note">Failed to load data. Check that /data JSON files exist. Details: ${String(err).replace(/[<>]/g,'')}</div>`;
-      }
-    }
+function setHeaderOffset(){
+  const h = document.getElementById('appHeader').offsetHeight;
+  document.documentElement.style.setProperty('--headerH', h + 'px');
+}
+window.addEventListener('resize', setHeaderOffset);
 
-    function sbHeaders(extra={}) {
-      return Object.assign({
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=representation,resolution=merge-duplicates'
-      }, extra);
-    }
-    async function sbFetch(path, opts={}) {
-      const res = await fetch(`${SUPABASE_URL}${path}`, opts);
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
-    }
-    async function loadAvailability(gameId) {
-      const code = getLeagueCode();
-      const params = new URLSearchParams({ select: '*', game_id: `eq.${gameId}`, league_code: `eq.${code}` });
-      const rows = await sbFetch(`/rest/v1/${AVAIL_TABLE}?${params.toString()}`, { headers: sbHeaders() });
-      const map = {};
-      for (const r of rows) map[r.player_id] = r.status;
-      return map;
-    }
-    async function saveAvailability(gameId, playerId, status) {
-      const code = getLeagueCode();
-      const body = [{ game_id: gameId, player_id: playerId, status: status ?? null, league_code: code }];
-      return sbFetch(`/rest/v1/${AVAIL_TABLE}`, { method: 'POST', headers: sbHeaders(), body: JSON.stringify(body) });
-    }
-    async function tallyServer(gameId) {
-      const map = await loadAvailability(gameId);
-      let ins=0, outs=0, iff=0;
-      Object.values(map).forEach(s => { if (s==='in') ins++; else if (s==='out') outs++; else if (s==='if') iff++; });
-      return { ins, outs, iff };
-    }
+async function fetchOrThrow(path) {
+  const res = await fetch(path, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`${path} -> ${res.status} ${res.statusText}`);
+  return res.json();
+}
+async function loadData() {
+  try {
+    const [team, schedule, roster] = await Promise.all([
+      fetchOrThrow('./data/team.json'),
+      fetchOrThrow('./data/schedule.json'),
+      fetchOrThrow('./data/roster.json')
+    ]);
+    SCHEDULE = schedule;
+    ROSTER = roster;
+    document.getElementById('teamLogo').src = team.logoUrl || '';
+    document.getElementById('teamName').textContent = team.teamName || "Hammerin' Hanks";
+    document.getElementById('appHeader').classList.remove('has-back');
+    setHeaderOffset();
+    await renderSchedule();
+  } catch (err) {
+    console.error('Failed to load JSON:', err);
+    document.getElementById('app').innerHTML = `<div class="note">Failed to load data. Check that /data JSON files exist. Details: ${String(err).replace(/[<>]/g,'')}</div>`;
+  }
+}
+function sbHeaders(extra={}) {
+  return Object.assign({
+    apikey: SUPABASE_KEY,
+    Authorization: `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    Prefer: 'return=representation,resolution=merge-duplicates'
+  }, extra);
+}
+async function sbFetch(path, opts={}) {
+  const res = await fetch(`${SUPABASE_URL}${path}`, opts);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+async function loadAvailability(gameId) {
+  const code = getLeagueCode();
+  const params = new URLSearchParams({ select: '*', game_id: `eq.${gameId}`, league_code: `eq.${code}` });
+  const rows = await sbFetch(`/rest/v1/${AVAIL_TABLE}?${params.toString()}`, { headers: sbHeaders() });
+  const map = {}; for (const r of rows) map[r.player_id] = r.status; return map;
+}
+async function saveAvailability(gameId, playerId, status) {
+  const code = getLeagueCode();
+  const body = [{ game_id: gameId, player_id: playerId, status: status ?? null, league_code: code }];
+  return sbFetch(`/rest/v1/${AVAIL_TABLE}`, { method: 'POST', headers: sbHeaders(), body: JSON.stringify(body) });
+}
+async function tallyServer(gameId) {
+  const map = await loadAvailability(gameId);
+  let ins=0, outs=0, iff=0; Object.values(map).forEach(s => { if (s==='in') ins++; else if (s==='out') outs++; else if (s==='if') iff++; });
+  return { ins, outs, iff };
+}
+async function renderSchedule() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  const countsList = await Promise.all(SCHEDULE.map(g => tallyServer(g.id)));
+  SCHEDULE.forEach((game, idx) => {
+    const counts = countsList[idx];
+    const div = document.createElement('div');
+    div.className = 'game-button';
+    div.innerHTML = `<div><strong>${game.date}</strong> • ${game.time}</div>
+                     <div>${game.field} | Opponent: ${game.opponent} <span class="badge ${game.homeAway.toLowerCase()}">${game.homeAway}</span></div>
+                     <div style="color: var(--muted); font-size: 13px;">In: ${counts.ins} • Out: ${counts.outs} • If Needed: ${counts.iff}</div>`;
+    div.onclick = () => renderRoster(game);
+    app.appendChild(div);
+  });
+}
+async function renderRoster(game) {
+  const app = document.getElementById('app');
+  document.getElementById('appHeader').classList.add('has-back');
 
-    async function renderSchedule() {
-      const app = document.getElementById('app');
-      app.innerHTML = '';
-      const countsList = await Promise.all(SCHEDULE.map(g => tallyServer(g.id)));
-      SCHEDULE.forEach((game, idx) => {
-        const counts = countsList[idx];
-        const div = document.createElement('div');
-        div.className = 'game-button';
-        div.innerHTML = `<div><strong>${game.date}</strong> • ${game.time}</div>
-                         <div>${game.field} | Opponent: ${game.opponent} <span class="badge ${game.homeAway.toLowerCase()}">${game.homeAway}</span></div>
-                         <div style="color: var(--muted); font-size: 13px;">In: ${counts.ins} • Out: ${counts.outs} • If Needed: ${counts.iff}</div>`;
-        div.onclick = () => renderRoster(game);
-        app.appendChild(div);
-      });
-    }
+  // Slim sticky opponent toolbar
+  app.innerHTML = `
+    <div class="subheader">
+      <div class="subheader-inner">
+        <div style="font-weight:800;">Opponent: ${game.opponent}</div>
+        <div style="color:var(--muted); font-size:13px;">${game.date} • ${game.time} • ${game.field} • <span class="badge ${game.homeAway.toLowerCase()}">${game.homeAway}</span></div>
+      </div>
+    </div>
+  `;
 
-    async function renderRoster(game) {
-      const app = document.getElementById('app');
-      app.innerHTML = `<div style='margin-bottom:12px;'><button class="btn" onclick='loadData()'>← Back</button></div>
-      <div class="roster-card" style="margin-bottom:12px;">
-        <div>
-          <div><strong>Opponent: ${game.opponent}</strong></div>
-          <div style="color:var(--muted); font-size:13px;">${game.date} • ${game.time} • ${game.field} • <span class="badge ${game.homeAway.toLowerCase()}">${game.homeAway}</span></div>
-        </div>
-      </div>`;
-      let current = {};
-      try { current = await loadAvailability(game.id); } catch (e) { console.error(e); }
-      ROSTER.forEach(player => {
-        const status = current[player.id] || '';
-        const row = document.createElement('div');
-        row.className = 'roster-card';
-        row.innerHTML = `<div class="who">${player.name}</div>
-                         <div class="btns">
-                           <button class='btn in ${status==='in'?'active in':''}' onclick='setStatus("${game.id}","${player.id}","in")'>In</button>
-                           <button class='btn out ${status==='out'?'active out':''}' onclick='setStatus("${game.id}","${player.id}","out")'>Out</button>
-                           <button class='btn if ${status==='if'?'active if':''}' onclick='setStatus("${game.id}","${player.id}","if")'>If Needed</button>
-                         </div>`;
-        app.appendChild(row);
-      });
-    }
-    async function setStatus(gameId, playerId, status) {
-      try {
-        const current = await loadAvailability(gameId);
-        const next = current[playerId] === status ? null : status;
-        await saveAvailability(gameId, playerId, next);
-        const game = SCHEDULE.find(g => g.id === gameId);
-        await renderRoster(game);
-      } catch (e) {
-        alert('Save failed. Check your Supabase URL, anon key, table, and RLS.');
-        console.error(e);
-      }
-    }
-    loadData();
-  </script>
+  let current = {}; try { current = await loadAvailability(game.id); } catch (e) { console.error(e); }
+  ROSTER.forEach(player => {
+    const status = current[player.id] || '';
+    const row = document.createElement('div');
+    row.className = 'roster-card';
+    row.innerHTML = `<div class="who">${player.name}</div>
+                     <div class="btns">
+                       <button class='btn in ${status==='in'?'active in':''}' onclick='setStatus("${game.id}","${player.id}","in")'>In</button>
+                       <button class='btn out ${status==='out'?'active out':''}' onclick='setStatus("${game.id}","${player.id}","out")'>Out</button>
+                       <button class='btn if ${status==='if'?'active if':''}' onclick='setStatus("${game.id}","${player.id}","if")'>If Needed</button>
+                     </div>`;
+    app.appendChild(row);
+  });
+}
+async function setStatus(gameId, playerId, status) {
+  try {
+    const current = await loadAvailability(gameId);
+    const next = current[playerId] === status ? null : status;
+    await saveAvailability(gameId, playerId, next);
+    const game = SCHEDULE.find(g => g.id === gameId);
+    await renderRoster(game);
+  } catch (e) {
+    alert('Save failed. Check your Supabase URL, anon key, table, and RLS.');
+    console.error(e);
+  }
+}
+loadData();
+</script>
 </body>
 </html>
