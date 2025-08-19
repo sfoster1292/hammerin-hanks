@@ -130,9 +130,20 @@ async function renderRoster(game) {
 async function setStatus(gameId, playerId, status) {
   try {
     const current = await loadAvailability(gameId);
-    const next = current[playerId] === status ? null : status; // clicking same choice clears it
+    const next = current[playerId] === status ? null : status; // clicking same clears it
     await saveAvailability(gameId, playerId, next);
-    showToast("Response Recorded!");
+
+    // Show themed toast
+    if (next === null) {
+      showToast("Response Removed!", "removed");
+    } else if (next === "in") {
+      showToast("Response Recorded!", "in");
+    } else if (next === "out") {
+      showToast("Response Recorded!", "out");
+    } else if (next === "if") {
+      showToast("Response Recorded!", "if");
+    }
+
     const game = SCHEDULE.find(g => g.id === gameId);
     await renderRoster(game);
   } catch (e) {
@@ -141,22 +152,48 @@ async function setStatus(gameId, playerId, status) {
   }
 }
 
-// Toast helper
-function showToast(message = "Response Recorded!") {
+
+// Toast helper with status + icons
+function showToast(message = "Response Recorded!", kind = "in") {
   // Remove any existing toast
   const existing = document.querySelector('.toast');
   if (existing) existing.remove();
 
+  // Choose an icon based on kind
+  const icon = (() => {
+    switch (kind) {
+      case "in": // checkmark
+        return `
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M20 6L9 17l-5-5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`;
+      case "out": // X
+        return `
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M6 6l12 12M18 6L6 18" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`;
+      case "if": // circle
+        return `
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`;
+      case "removed": // minus inside a circle (subtle)
+        return `
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8 12h8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`;
+      default:
+        return "";
+    }
+  })();
+
   const t = document.createElement('div');
-  t.className = 'toast';
+  t.className = `toast ${kind}`;
   t.setAttribute('role', 'status');
   t.setAttribute('aria-live', 'polite');
   t.innerHTML = `
-    <span class="check" aria-hidden="true">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M20 6L9 17l-5-5" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </span>
+    <span class="icon" aria-hidden="true">${icon}</span>
     <span>${message}</span>
   `;
   document.body.appendChild(t);
@@ -165,9 +202,8 @@ function showToast(message = "Response Recorded!") {
   setTimeout(() => {
     t.classList.add('hide');
     setTimeout(() => t.remove(), 220);
-  }, 1400);
+  }, 2000);
 }
 
 // Start
 loadData();
-
