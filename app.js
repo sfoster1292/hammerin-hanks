@@ -1,7 +1,7 @@
 const SUPABASE_URL = "https://znlzjtmwmouiahfovtdr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpubHpqdG13bW91aWFoZm92dGRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjg1NzAsImV4cCI6MjA3MDYwNDU3MH0.5PRe3Z4CzYjCoXNgFu2FiNPF0ufRhLHRSToBaJ6oeTg";
-const AVAIL_TABLE  = "availability";
-function getLeagueCode() { return 'hanks-2025-8QwZ'; }     // replace
+const AVAIL_TABLE  = "availability;
+function getLeagueCode() { return 'hanks-2025-8QwZ'; }
 
 let SCHEDULE = [];
 let ROSTER = [];
@@ -81,20 +81,43 @@ async function tallyServer(gameId) {
 async function renderSchedule() {
   const app = document.getElementById('app');
   app.innerHTML = '';
+
   const countsList = await Promise.all(SCHEDULE.map(g => tallyServer(g.id)));
+
   SCHEDULE.forEach((game, idx) => {
     const counts = countsList[idx];
+
+    // Build result badge if data present
+    let resultHTML = '';
+    const hasNumbers =
+      Number.isFinite(game.ourScore) && Number.isFinite(game.oppScore);
+    if (game.winLoss && hasNumbers) {
+      const kind =
+        game.winLoss === 'W' ? 'win' :
+        game.winLoss === 'L' ? 'loss' :
+        'tie'; // support 'T' or others as neutral/blue
+      resultHTML = `<span class="result-badge ${kind}">${game.winLoss} ${game.ourScore}–${game.oppScore}</span>`;
+    }
+
     const div = document.createElement('div');
     div.className = 'game-button';
     div.innerHTML = `
-      <div><strong>${game.date}</strong> • ${game.time}</div>
-      <div>${game.field} | Opponent: ${game.opponent} <span class="badge ${game.homeAway.toLowerCase()}">${game.homeAway}</span></div>
-      <div style="color: var(--muted); font-size: 13px;">In: ${counts.ins} • Out: ${counts.outs} • If Needed: ${counts.iff}</div>
+      <div class="game-top">
+        <div><strong>${game.date}</strong> • ${game.time}</div>
+        ${resultHTML}
+      </div>
+      <div>${game.field} | Opponent: ${game.opponent}
+        <span class="badge ${game.homeAway.toLowerCase()}">${game.homeAway}</span>
+      </div>
+      <div style="color: var(--muted); font-size: 13px;">
+        In: ${counts.ins} • Out: ${counts.outs} • If Needed: ${counts.iff}
+      </div>
     `;
     div.onclick = () => renderRoster(game);
     app.appendChild(div);
   });
 }
+
 
 async function renderRoster(game) {
   const app = document.getElementById('app');
