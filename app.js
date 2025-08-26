@@ -1,6 +1,6 @@
 const SUPABASE_URL = "https://znlzjtmwmouiahfovtdr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpubHpqdG13bW91aWFoZm92dGRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjg1NzAsImV4cCI6MjA3MDYwNDU3MH0.5PRe3Z4CzYjCoXNgFu2FiNPF0ufRhLHRSToBaJ6oeTg";
-const AVAIL_TABLE  = "availability;
+const AVAIL_TABLE  = "availability";
 function getLeagueCode() { return 'hanks-2025-8QwZ'; }
 
 let SCHEDULE = [];
@@ -230,3 +230,4 @@ function showToast(message = "Response Recorded!", kind = "in") {
 
 // Start
 loadData();
+
