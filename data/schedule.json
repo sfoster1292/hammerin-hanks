@@ -1,7 +1,7 @@
 [
   {"id": "2025-09-02-6pm-lt", "date": "Tue, Sep 2, 2025", "time": "6:00 PM", "field": "Letort", "opponent": "HGH", "homeAway": "Away", "winLoss": "W", "ourScore": 14, "oppScore": 12},
   {"id": "2025-09-04-7pm-lt", "date": "Thu, Sep 4, 2025", "time": "7:00 PM", "field": "Letort", "opponent": "Recmondo", "homeAway": "Home", "winLoss": "W", "ourScore": 6, "oppScore": 3},
-  {"id": "2025-09-09-6pm-ml", "date": "Tue, Sep 9, 2025", "time": "6:00 PM", "field": "Mooreland", "opponent": "Legion/109 Ryders", "homeAway": "Away", "winLoss": null, "ourScore": null, "oppScore": null},
+  {"id": "2025-09-09-6pm-ml", "date": "Tue, Sep 9, 2025", "time": "6:00 PM", "field": "Mooreland", "opponent": "Legion/109 Ryders", "homeAway": "Away", "winLoss": "L", "ourScore": 14, "oppScore": 22},
   {"id": "2025-09-11-8pm-lt", "date": "Thu, Sep 11, 2025", "time": "8:00 PM", "field": "Letort", "opponent": "Seein' Double", "homeAway": "Away", "winLoss": null, "ourScore": null, "oppScore": null},
   {"id": "2025-09-16-6pm-lt", "date": "Tue, Sep 16, 2025", "time": "6:00 PM", "field": "Letort", "opponent": "Atomics", "homeAway": "Away", "winLoss": null, "ourScore": null, "oppScore": null},
   {"id": "2025-09-18-8pm-lt", "date": "Thu, Sep 18, 2025", "time": "8:00 PM", "field": "Letort", "opponent": "Pink Panthers", "homeAway": "Home", "winLoss": null, "ourScore": null, "oppScore": null},
