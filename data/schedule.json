@@ -12,5 +12,6 @@
   {"id": "2025-10-09-8pm-lt", "date": "Thu, Oct 9, 2025", "time": "8:00 PM", "field": "Letort", "opponent": "Atomics", "homeAway": "Home", "winLoss": "W", "ourScore": 17, "oppScore": 12},
   {"id": "2025-10-16-6pm-lt", "date": "Thu, Oct 16, 2025", "time": "6:00 PM", "field": "Letort", "opponent": "HGH", "homeAway": "Home", "winLoss": "W", "ourScore": 12, "oppScore": 9},
   {"id": "2025-10-21-7pm-lt", "date": "Tue, Oct 21, 2025", "time": "7:00 PM", "field": "Letort", "opponent": "Seein' Double", "homeAway": "Home", "winLoss": "L", "ourScore": 4, "oppScore": 16},
-  {"id": "2025-10-23-6pm-lt", "date": "Thu, Oct 23, 2025", "time": "6:00 PM", "field": "Letort", "opponent": "Galactic Empire", "homeAway": "Away", "winLoss": null, "ourScore": null, "oppScore": null}
+  {"id": "2025-10-23-6pm-lt", "date": "Thu, Oct 23, 2025", "time": "6:00 PM", "field": "Letort", "opponent": "Galactic Empire", "homeAway": "Away", "winLoss": "L", "ourScore": 5, "oppScore": 9},
+  {"id": "2025-10-30-6pm-lt", "date": "Thu, Oct 30, 2025", "time": "6:00 PM", "field": "Letort", "opponent": "Seein' Double", "homeAway": "Away", "winLoss": null, "ourScore": null, "oppScore": null}
 ]
